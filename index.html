@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FFB84D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Хома-хулиган">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="Весёлая игра про хомяка-хулигана: устрой бардак, убеги от мамы и кошки, спрячься от робота-пылесоса!">
+  <title>Хома-хулиган — Большой бардак</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Игровое поле"></canvas>
+
+  <!-- ================= HUD ================= -->
+  <div id="hud" class="hidden" aria-live="polite">
+    <div class="hud-top">
+      <div class="level-chip" id="levelChip">
+        <span class="chip-num">1</span>
+        <span class="chip-text" id="levelChipText">ПОДВАЛ</span>
+      </div>
+      <div class="objective-wrap">
+        <div class="objective-pill">
+          <span class="obj-icon" aria-hidden="true">✦</span>
+          <span id="taskCounter">Шалости 0/6</span>
+        </div>
+        <div class="seed-pill" id="seedPill">
+          <span class="seed-icon" aria-hidden="true"></span>
+          <span id="seedCounter">0/3</span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button class="icon-btn" id="btnMute" aria-label="Звук" title="Звук">
+          <span id="muteIcon">♪</span>
+        </button>
+        <button class="icon-btn pause-btn" id="btnPause" aria-label="Пауза" title="Пауза">
+          <span class="pause-bars"><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="compass" id="compass" aria-hidden="true">
+      <div class="compass-arrow" id="compassArrow">▲</div>
+      <div class="compass-label" id="compassLabel">шалость</div>
+    </div>
+
+    <div class="toast" id="toast"><span id="toastText"></span></div>
+    <div class="event-banner" id="eventBanner"><span id="eventText"></span></div>
+
+    <div class="touch-zone" id="touchZone"></div>
+    <div class="joystick" id="joystick">
+      <div class="joy-base">
+        <div class="joy-ring"></div>
+        <div class="joy-knob" id="joyKnob">
+          <span class="joy-paw">●</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="action-btn hide-btn" id="btnHide" aria-label="Спрятаться">
+        <span class="action-icon">👀</span>
+        <span class="action-text">ПРЯТКИ</span>
+      </button>
+      <button class="action-btn dash-btn" id="btnDash" aria-label="Рывок">
+        <span class="action-icon">⚡</span>
+        <span class="action-text">РЫВОК</span>
+        <span class="cooldown-ring" id="dashCooldown"></span>
+      </button>
+    </div>
+
+    <div class="coach" id="coach">
+      <div class="coach-hand">☝</div>
+      <div class="coach-text" id="coachText">Веди пальцем, чтобы бежать</div>
+    </div>
+
+    <div class="catch-flash" id="catchFlash">
+      <div class="catch-inner">
+        <div class="catch-emoji" id="catchEmoji">😳</div>
+        <div class="catch-title" id="catchTitle">Ой!</div>
+        <div class="catch-sub" id="catchSub">Мама догнала!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCREENS ================= -->
+  <div id="screens">
+    <!-- Title -->
+    <section class="screen active title-screen" id="screenTitle">
+      <div class="title-bg" aria-hidden="true">
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="blob blob-c"></div>
+        <div class="doodle doodle-1">🧦</div>
+        <div class="doodle doodle-2">🍪</div>
+        <div class="doodle doodle-3">🧸</div>
+        <div class="doodle doodle-4">🌻</div>
+        <div class="doodle doodle-5">🐾</div>
+        <div class="doodle doodle-6">✦</div>
+      </div>
+      <div class="title-top">
+        <button class="icon-btn sound-title" id="btnTitleSound" aria-label="Звук">♪</button>
+        <div class="title-lockup">
+          <div class="logo-badge">
+            <img src="icons/icon.svg" alt="Хома — весёлый хомяк">
+            <span class="logo-spark s1">✦</span>
+            <span class="logo-spark s2">✦</span>
+          </div>
+          <div class="title-type">
+            <p class="kicker">Уютный дом. Один хомяк. Много бардака.</p>
+            <h1><span>ХОМА</span><strong>ХУЛИГАН</strong></h1>
+            <p class="subtitle">Большой бардак</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="title-main">
+        <div class="house-card" aria-hidden="true">
+          <div class="house-roof"></div>
+          <div class="house-floor floor-3">
+            <span class="floor-tag">2 этаж</span>
+            <div class="mini-rooms">
+              <i>🛏️</i><i>🛏️</i><i>🛏️</i>
+            </div>
+            <span class="floor-note">3 спальни</span>
+          </div>
+          <div class="house-floor floor-2">
+            <span class="floor-tag">1 этаж</span>
+            <div class="mini-rooms wide">
+              <i>🍳</i><i>🛋️</i><i>🧥</i>
+            </div>
+            <span class="floor-note">кухня · гостиная · гардероб</span>
+          </div>
+          <div class="house-floor floor-1">
+            <span class="floor-tag">подвал</span>
+            <div class="mini-rooms">
+              <i>🧸</i><i>🎈</i><i>🧩</i>
+            </div>
+            <span class="floor-note">игровая комната</span>
+          </div>
+          <div class="house-homa">
+            <img src="icons/icon.svg" alt="">
+          </div>
+          <div class="house-cat">🐱</div>
+          <div class="house-robot">🤖</div>
+        </div>
+
+        <div class="menu-panel">
+          <button class="btn btn-play" id="btnPlay">
+            <span class="btn-main" id="playLabel">ИГРАТЬ</span>
+            <span class="btn-sub" id="playSub">с самого начала</span>
+          </button>
+          <button class="btn btn-secondary" id="btnLevels">
+            <span class="btn-main">УРОВНИ</span>
+            <span class="btn-sub" id="levelsSub">4 уровня</span>
+          </button>
+          <div class="menu-row">
+            <button class="mini-btn" id="btnHowTitle"><span>?</span> Как играть</button>
+            <button class="mini-btn" id="btnSoundTitle"><span id="soundGlyph">♪</span> Звук</button>
+          </div>
+          <div class="title-stars">
+            <span class="star-mini">★</span>
+            <span id="titleStars">0 из 12 звёзд</span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="title-footer">
+        <span>4 уровня</span><i>•</i><span>для пальчиков и планшетов</span><i>•</i><span>без рекламы</span>
+      </footer>
+      <div class="ios-tip" id="iosTip">📲 На iPhone/iPad: «Поделиться» → «На экран Домой»</div>
+    </section>
+
+    <!-- Level select -->
+    <section class="screen levels-screen" id="screenLevels">
+      <div class="screen-head">
+        <button class="round-back" id="btnLevelsBack" aria-label="Назад">←</button>
+        <div>
+          <p class="kicker">Выбери, где навести порядок... то есть бардак!</p>
+          <h2>УРОВНИ</h2>
+        </div>
+        <div class="head-stars"><span>★</span><span id="levelsStars">0/12</span></div>
+      </div>
+      <div class="levels-grid" id="levelsGrid"></div>
+      <p class="levels-hint">Собирай семечки и не попадайся никому! Чем меньше поймали — тем больше звёзд.</p>
+    </section>
+
+    <!-- Intro -->
+    <section class="screen intro-screen" id="screenIntro">
+      <div class="intro-card">
+        <div class="intro-badge" id="introBadge">УРОВЕНЬ 1</div>
+        <div class="intro-emoji" id="introEmoji">🧸</div>
+        <h2 id="introTitle">Игрушечный погром</h2>
+        <p class="intro-place" id="introPlace">ПОДВАЛ · игровая комната</p>
+        <p class="intro-desc" id="introDesc"></p>
+        <div class="intro-goals" id="introGoals"></div>
+        <div class="intro-enemies" id="introEnemies"></div>
+        <div class="intro-controls">
+          <div><span class="ctrl-icon">🕹️</span><b>Веди пальцем</b><small>чтобы бежать</small></div>
+          <div><span class="ctrl-icon">⚡</span><b>Рывок</b><small>быстро удрать</small></div>
+          <div><span class="ctrl-icon">👀</span><b>Прятки</b><small>у норки, шкафа...</small></div>
+        </div>
+        <button class="btn btn-play intro-start" id="btnStartLevel">
+          <span class="btn-main">ПОГНАЛИ!</span>
+          <span class="btn-sub" id="introStartSub">вперёд, за шалостями</span>
+        </button>
+        <button class="text-btn" id="btnIntroBack">На главную</button>
+      </div>
+    </section>
+
+    <!-- Pause -->
+    <section class="screen pause-screen" id="screenPause">
+      <div class="pause-card">
+        <div class="pause-homa">🐹</div>
+        <h2>ПАУЗА</h2>
+        <p>Хома притаился в щёчках...</p>
+        <div class="pause-grid">
+          <button class="btn btn-play" id="btnResume"><span class="btn-main">ПРОДОЛЖИТЬ</span></button>
+          <button class="btn btn-secondary" id="btnRestart"><span class="btn-main">ЗАНОВО</span></button>
+          <button class="btn btn-secondary" id="btnHelp"><span class="btn-main">КАК ИГРАТЬ</span></button>
+          <button class="btn btn-secondary" id="btnPauseLevels"><span class="btn-main">К УРОВНЯМ</span></button>
+        </div>
+        <div class="pause-bottom">
+          <button class="mini-btn" id="btnPauseMute"><span id="pauseSoundGlyph">♪</span> Звук</button>
+          <button class="mini-btn" id="btnPauseHome">На главную</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result -->
+    <section class="screen result-screen" id="screenResult">
+      <div class="result-card">
+        <div class="result-kicker" id="resultKicker">УРОВЕНЬ ПРОЙДЕН!</div>
+        <h2 id="resultTitle">Вот это бардак!</h2>
+        <div class="result-stars" id="resultStars">
+          <span class="big-star">★</span><span class="big-star">★</span><span class="big-star">★</span>
+        </div>
+        <p class="result-note" id="resultNote">Мама только вздохнула...</p>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="result-art" id="resultArt">🐹</div>
+        <button class="btn btn-play" id="btnResultNext"><span class="btn-main" id="btnResultNextLabel">ДАЛЬШЕ</span></button>
+        <div class="result-row">
+          <button class="mini-btn" id="btnResultReplay">↻ Ещё раз</button>
+          <button class="mini-btn" id="btnResultLevels">К уровням</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Finale -->
+    <section class="screen finale-screen" id="screenFinale">
+      <div class="finale-card">
+        <div class="finale-sky" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span><span>✧</span></div>
+        <div class="finale-art" id="finaleArt">
+          <div class="finale-nest"></div>
+          <div class="finale-homa">🐹</div>
+          <div class="finale-z z1">z</div>
+          <div class="finale-z z2">Z</div>
+          <div class="finale-heart">♥</div>
+        </div>
+        <p class="result-kicker">ФИНАЛ</p>
+        <h2>Легенда большого бардака</h2>
+        <p class="finale-text" id="finaleText"></p>
+        <div class="finale-stars"><span>★</span><b id="finaleStars">12 / 12</b></div>
+        <button class="btn btn-play" id="btnFinaleAgain"><span class="btn-main">ИГРАТЬ ЕЩЁ</span></button>
+        <button class="text-btn" id="btnFinaleHome">На главную</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Help modal -->
+  <div class="modal" id="helpModal">
+    <div class="modal-backdrop" data-close-help></div>
+    <div class="modal-card">
+      <button class="modal-close" id="btnHelpClose" aria-label="Закрыть">×</button>
+      <p class="kicker">Инструкция для маленьких хулиганов</p>
+      <h2>КАК ИГРАТЬ</h2>
+      <div class="help-list">
+        <div class="help-item"><span class="help-emoji">🕹️</span><div><b>Веди пальцем по левой стороне</b><p>Хома побежит за пальцем. На компьютере — стрелки или WASD.</p></div></div>
+        <div class="help-item"><span class="help-emoji">⚡</span><div><b>Рывок</b><p>Быстрый бросок вперёд. Нажми, если кто-то догоняет. Потом кнопка немного отдохнёт.</p></div></div>
+        <div class="help-item"><span class="help-emoji">👀</span><div><b>Прятки</b><p>Подойди к коробке, шкафу, кровати или корзине. Появится кнопка «ПРЯТКИ» — жми!</p></div></div>
+        <div class="help-item"><span class="help-emoji">✦</span><div><b>Шалости</b><p>Врезайся в предметы с золотыми искорками. Разбросай всё, что можно!</p></div></div>
+        <div class="help-item"><span class="help-emoji">🌻</span><div><b>Семечки</b><p>Собери 3 семечка на уровне — получишь дополнительную звезду.</p></div></div>
+        <div class="help-item"><span class="help-emoji">🏃</span><div><b>Убегай!</b><p>Мама, кошка Мурка и робот-пылесос не любят бардак. Прячься или делай рывок!</p></div></div>
+      </div>
+      <div class="help-ios">
+        <b>📲 Установка на iPhone или iPad</b>
+        <p>Открой игру в Safari → кнопка «Поделиться» → «На экран Домой». Так игра запустится без адресной строки и будет работать без интернета.</p>
+      </div>
+      <div class="help-actions">
+        <button class="btn btn-play" data-close-help><span class="btn-main">ВСЁ ПОНЯТНО</span></button>
+        <button class="text-btn danger" id="btnResetProgress">Сбросить прогресс</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="levels.js"></script>
+<script src="art.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
