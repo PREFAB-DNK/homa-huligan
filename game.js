@@ -238,6 +238,14 @@
           noise(t, 0.13, 0.16, 2200);
           glide(280, 620, t, 0.15, 'sawtooth', 0.06);
           break;
+        case 'throw':
+          noise(t, 0.07, 0.1, 3000);
+          glide(620, 340, t, 0.13, 'triangle', 0.1);
+          break;
+        case 'boing':
+          glide(260, 620, t, 0.16, 'sine', 0.18);
+          osc(880, t + 0.12, 0.1, 'triangle', 0.1);
+          break;
         case 'hide':
           glide(420, 180, t, 0.2, 'sine', 0.16);
           break;
@@ -276,6 +284,7 @@
     tasks: [],
     seeds: [],
     words: [],
+    balls: [],
     hides: [],
     particles: [],
     floats: [],
@@ -628,6 +637,8 @@
       dash: 0,
       dashCd: 0,
       dashDir: { x: 1, y: 0 },
+      ballCd: 0,
+      hideAnim: 0,
       invuln: 1.4,
       hidden: false,
       hideSpot: null,
@@ -659,6 +670,7 @@
       pathTime: 0,
       chaseTime: 0,
       lostTime: 0,
+      stunTime: 0,
       lastSeen: null,
       bubble: '',
       bubbleUntil: 0,
@@ -670,6 +682,7 @@
     }));
     G.particles = [];
     G.floats = [];
+    G.balls = [];
     G.currentWord = null;
     G.wordReturnMode = 'play';
     clearTimeout(G.wordSpeakTimer);
@@ -704,6 +717,7 @@
     $('wordBookModal').classList.remove('show');
     $('btnHide').classList.remove('show', 'hidden-mode');
     $('btnDash').classList.remove('cooling');
+    $('btnBall').classList.remove('cooling');
     G.joystick.active = false;
     G.joystick.pointerId = null;
     resetStickVisual();
@@ -858,6 +872,7 @@
     G.nav = null;
     G.particles = [];
     G.floats = [];
+    G.balls = [];
     G.currentWord = null;
     clearTimeout(G.wordSpeakTimer);
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -1265,7 +1280,8 @@
     p.saved = { x: p.x, y: p.y };
     p.hidden = true;
     p.hideSpot = h;
-    p.hideTimer = 4.4;
+    p.hideTimer = 4.6;
+    p.hideAnim = h.label === 'в коробке' ? 0.45 : 0;
     p.x = h.px;
     p.y = h.py;
     p.vx = 0;
@@ -1274,7 +1290,8 @@
     p.hideCooldown = 0.9;
     G.lastSafe = { x: p.saved.x, y: p.saved.y };
     Sound.play('hide');
-    showToast('Тс-с... Хома спрятался. Посиди тихонько!', 1900);
+    hideCoach();
+    showToast(h.label === 'в коробке' ? 'Хома забрался в коробку. Его не видно! Тс-с...' : 'Хома спрятался. Его не видно! Тс-с...', 2100);
     G.enemies.forEach((e) => {
       if (e.state === 'chase') {
         e.state = e.lastSeen ? 'search' : 'patrol';
@@ -1298,6 +1315,7 @@
     if (p.saved) { p.x = p.saved.x; p.y = p.saved.y; }
     p.hideSpot = null;
     p.hideTimer = 0;
+    p.hideAnim = 0;
     p.hideCooldown = 0.75;
     p.invuln = Math.max(p.invuln, 1.2);
     p.vx = 0;
@@ -1325,6 +1343,105 @@
     p.facing = p.dashDir.x < -0.1 ? -1 : 1;
     Sound.play('dash');
     spawnBurst(p.x, p.y - 8, ['#fff4d9', '#ffd15c', '#e8dcc7'], 8, 70);
+  }
+
+  function throwBall() {
+    const p = G.player;
+    if (!p || G.mode !== 'play' || p.hidden || p.ballCd > 0) return;
+    let target = null;
+    let best = Infinity;
+    G.enemies.forEach((e) => {
+      if (e.type !== 'cat') return;
+      if (e.stunTime > 0) return;
+      const d = dist(p.x, p.y, e.x, e.y);
+      if (d < 560 && d < best && lineClear(p.x, p.y - 24, e.x, e.y - 20, 3)) {
+        best = d;
+        target = e;
+      }
+    });
+    let dx;
+    let dy;
+    if (target) {
+      dx = target.x - p.x;
+      dy = (target.y - 20) - p.y;
+    } else {
+      dx = p.facing;
+      dy = 0;
+    }
+    const d = Math.hypot(dx, dy) || 1;
+    dx /= d;
+    dy /= d;
+    G.balls.push({
+      x: p.x + dx * 28,
+      y: p.y - 26 + dy * 20,
+      vx: dx * 520,
+      vy: dy * 520,
+      radius: 10,
+      rot: 0,
+      life: 1.25
+    });
+    if (G.balls.length > 3) G.balls.shift();
+    p.ballCd = 1.45;
+    p.hideCooldown = Math.max(p.hideCooldown, 0.1);
+    Sound.play('throw');
+    spawnBurst(p.x + dx * 20, p.y - 28, ['#e6f28a', '#fff4d9', '#9bce9c'], 7, 90);
+  }
+
+  function stunCat(e) {
+    e.stunTime = 3.4;
+    e.state = 'stunned';
+    e.sleeping = false;
+    e.vx = 0;
+    e.vy = 0;
+    e.moving = false;
+    e.path = null;
+    e.chaseTime = 0;
+    e.lastSeen = null;
+    e.bubble = 'Мяу!';
+    e.bubbleUntil = G.time + 1.8;
+    Sound.play('boing');
+    spawnBurst(e.x, e.y - 40, ['#ffd15c', '#fff4d9', '#b9e7f7', '#ff9f7a'], 20, 230);
+    showToast('Мурка испугалась! Мячик отвлёк её на пару секунд', 2200);
+  }
+
+  function hitMomWithBall(e) {
+    e.bubble = 'В маму нельзя!';
+    e.bubbleUntil = G.time + 1.6;
+    Sound.play('boing');
+    showToast('В маму кидать нельзя! Мячик отскочил', 1600);
+    spawnBurst(e.x, e.y - 45, ['#ffd15c', '#fff4d9'], 8, 110);
+  }
+
+  function updateBalls(dt) {
+    G.balls = G.balls.filter((b) => {
+      b.life -= dt;
+      b.rot += dt * 20;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      if (b.life <= 0) return false;
+      if (circleHitsSolid(b.x, b.y, b.radius)) {
+        spawnBurst(b.x, b.y - 24, ['#e6f28a', '#fff4d9'], 7, 100);
+        return false;
+      }
+      for (let i = 0; i < G.enemies.length; i++) {
+        const e = G.enemies[i];
+        const hitDist = dist(b.x, b.y, e.x, e.y - 16);
+        if (hitDist < 34) {
+          if (e.type === 'cat') {
+            stunCat(e);
+            spawnBurst(b.x, b.y - 24, ['#e6f28a', '#fff4d9'], 8, 120);
+            return false;
+          }
+          if (e.type === 'mom') {
+            hitMomWithBall(e);
+            return false;
+          }
+          spawnBurst(b.x, b.y - 24, ['#e6f28a', '#fff4d9'], 6, 90);
+          return false;
+        }
+      }
+      return true;
+    });
   }
 
   // ============================================================
@@ -1396,9 +1513,11 @@
     p.hidden = false;
     p.hideSpot = null;
     p.hideTimer = 0;
+    p.hideAnim = 0;
     p.invuln = 2.6;
     p.dash = 0;
     p.dashCd = 0;
+    p.ballCd = 0;
     p.saved = null;
     G.lastSafe = { x: p.x, y: p.y };
     G.enemies.forEach((e) => {
@@ -1570,6 +1689,18 @@
     G.enemies.forEach((e) => {
       e.respawnGrace = Math.max(0, e.respawnGrace - dt);
       if (e.bubbleUntil < G.time) e.bubble = '';
+      if (e.stunTime > 0) {
+        e.stunTime = Math.max(0, e.stunTime - dt);
+        e.vx = 0;
+        e.vy = 0;
+        e.moving = false;
+        return;
+      }
+      if (e.state === 'stunned') {
+        e.state = 'patrol';
+        e.wait = 0.6;
+        e.path = null;
+      }
       if (e.state === 'sleep') {
         if (e.wakeAfter && G.doneCount >= e.wakeAfter) wakeEnemy(e);
         return;
@@ -1670,10 +1801,12 @@
     const p = G.player;
     p.invuln = Math.max(0, p.invuln - dt);
     p.dashCd = Math.max(0, p.dashCd - dt);
+    p.ballCd = Math.max(0, p.ballCd - dt);
     p.hideCooldown = Math.max(0, p.hideCooldown - dt);
     p.dash = Math.max(0, p.dash - dt);
     if (p.hidden) {
       p.hideTimer -= dt;
+      p.hideAnim = Math.max(0, p.hideAnim - dt);
       p.moving = false;
       if (p.hideTimer <= 0) unhidePlayer();
       G.moveInput = { x: 0, y: 0, mag: 0 };
@@ -1756,6 +1889,10 @@
         $('btnDash').classList.toggle('cooling', on);
         const frac = on ? 1 - p.dashCd / 1.55 : 1;
         $('dashCooldown').style.transform = 'rotate(' + (frac * 360) + 'deg)';
+        const ballOn = p.ballCd > 0;
+        $('btnBall').classList.toggle('cooling', ballOn);
+        const ballFrac = ballOn ? 1 - p.ballCd / 1.45 : 1;
+        $('ballCooldown').style.transform = 'rotate(' + (ballFrac * 360) + 'deg)';
       }
       if (G.player && G.player.hidden) {
         $('btnHide').querySelector('.action-text').textContent = 'ВЫЙТИ';
@@ -1775,6 +1912,7 @@
     G.levelTime += dt;
     updatePlayer(dt);
     if (G.mode !== 'play') return;
+    updateBalls(dt);
     updateEnemies(dt);
     if (G.mode !== 'play') return;
     G.shake = Math.max(0, G.shake - dt * 26);
@@ -1925,6 +2063,11 @@
       Sound.unlock();
       startDash();
     }, { passive: false });
+    $('btnBall').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      Sound.unlock();
+      throwBall();
+    }, { passive: false });
     $('btnHide').addEventListener('pointerdown', (e) => {
       e.preventDefault();
       Sound.unlock();
@@ -1943,6 +2086,7 @@
       }
       G.keys.add(e.code);
       if (e.code === 'Space') startDash();
+      if (e.code === 'KeyF' || e.code === 'KeyQ') throwBall();
       if (e.code === 'KeyE') toggleHide();
       if (e.code === 'Escape' && G.mode === 'play') pauseGame();
       if (e.code === 'Enter' && G.mode === 'intro') beginPlay();
@@ -2003,7 +2147,27 @@
     const p = G.player;
     if (p) {
       if (p.hidden && p.hideSpot) {
-        actors.push({ y: p.hideSpot.py, draw: () => Art.drawHidingEyes(ctx, p.hideSpot, G.time) });
+        if (p.hideSpot.label === 'в коробке' && p.hideAnim > 0) {
+          const progress = 1 - p.hideAnim / 0.45;
+          actors.push({
+            y: p.hideSpot.py,
+            draw: () => {
+              ctx.save();
+              ctx.globalAlpha = Math.max(0, 1 - progress);
+              ctx.translate(p.x, p.y);
+              const s = Math.max(0.35, 1 - progress * 0.65);
+              ctx.scale(s, s);
+              ctx.translate(-p.x, -p.y);
+              Art.drawHoma(ctx, p.x, p.y, G.time, {
+                facing: p.facing,
+                moving: false,
+                speed: 0,
+                dash: 0
+              });
+              ctx.restore();
+            }
+          });
+        }
       } else {
         actors.push({
           y: p.y,
@@ -2023,6 +2187,26 @@
       }
     }
     actors.sort((a, b) => a.y - b.y).forEach((a) => a.draw());
+    // flying tennis balls
+    G.balls.forEach((b) => {
+      ctx.save();
+      ctx.fillStyle = 'rgba(53,33,43,.18)';
+      ctx.beginPath();
+      ctx.ellipse(b.x, b.y + 3, 10, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.translate(b.x, b.y - 24);
+      ctx.rotate(b.rot);
+      Art.ell(ctx, 0, 0, 10, 10, '#dbe95c', Art.INK, 2.2);
+      ctx.strokeStyle = '#fffdf5';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, -1.7, 0.25);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 1.35, 3.4);
+      ctx.stroke();
+      ctx.restore();
+    });
     // particles
     Art.drawParticles(ctx, G.particles);
     // floating text
@@ -2086,8 +2270,15 @@
       sleeping
     };
     if (e.type === 'mom') Art.drawMom(ctx, e.x, e.y, G.time, state);
-    else if (e.type === 'cat') Art.drawCat(ctx, e.x, e.y, G.time, state);
-    else Art.drawRobot(ctx, e.x, e.y, G.time, state);
+    else if (e.type === 'cat') {
+      Art.drawCat(ctx, e.x, e.y, G.time, state);
+      if (e.stunTime > 0) {
+        for (let i = 0; i < 3; i++) {
+          const a = G.time * 3 + i * (Math.PI * 2 / 3);
+          Art.star(ctx, e.x + Math.cos(a) * 25, e.y - 92 + Math.sin(a) * 10, 5, '#ffd15c', Art.INK);
+        }
+      }
+    } else Art.drawRobot(ctx, e.x, e.y, G.time, state);
   }
 
   // ============================================================

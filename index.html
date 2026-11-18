@@ -70,6 +70,14 @@
         <span class="action-icon">👀</span>
         <span class="action-text">ПРЯТКИ</span>
       </button>
+      <button class="action-btn ball-btn" id="btnBall" aria-label="Кинуть мячик">
+        <svg class="action-icon ball-icon" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="16" fill="#dbe95c" stroke="#463240" stroke-width="3"/>
+          <path d="M7 12c8 4 12 10 13 20M33 12c-8 4-12 10-13 20" fill="none" stroke="#fffdf5" stroke-width="2.6"/>
+        </svg>
+        <span class="action-text">МЯЧ</span>
+        <span class="cooldown-ring" id="ballCooldown"></span>
+      </button>
       <button class="action-btn dash-btn" id="btnDash" aria-label="Рывок">
         <span class="action-icon">⚡</span>
         <span class="action-text">РЫВОК</span>
@@ -207,7 +215,8 @@
         <div class="intro-controls">
           <div><span class="ctrl-icon">🕹️</span><b>Веди пальцем</b><small>чтобы бежать</small></div>
           <div><span class="ctrl-icon">⚡</span><b>Рывок</b><small>быстро удрать</small></div>
-          <div><span class="ctrl-icon">👀</span><b>Прятки</b><small>у норки, шкафа...</small></div>
+          <div><span class="ctrl-icon">👀</span><b>Прятки</b><small>в коробке не видно</small></div>
+          <div><span class="ctrl-icon">⚽</span><b>Мячик</b><small>в Мурку, не в маму</small></div>
         </div>
         <button class="btn btn-play intro-start" id="btnStartLevel">
           <span class="btn-main">ПОГНАЛИ!</span>
@@ -289,7 +298,8 @@
       <div class="help-list">
         <div class="help-item"><span class="help-emoji">🕹️</span><div><b>Веди пальцем по левой стороне</b><p>Хома побежит за пальцем. На компьютере — стрелки или WASD.</p></div></div>
         <div class="help-item"><span class="help-emoji">⚡</span><div><b>Рывок</b><p>Быстрый бросок вперёд. Нажми, если кто-то догоняет. Потом кнопка немного отдохнёт.</p></div></div>
-        <div class="help-item"><span class="help-emoji">👀</span><div><b>Прятки</b><p>Подойди к коробке, шкафу, кровати или корзине. Появится кнопка «ПРЯТКИ» — жми!</p></div></div>
+        <div class="help-item"><span class="help-emoji">⚽</span><div><b>Мячик</b><p>Нажми, чтобы кинуть мячик в Мурку. Она испугается и на время забудет про погоню. В маму кидать нельзя — мячик отскочит.</p></div></div>
+        <div class="help-item"><span class="help-emoji">👀</span><div><b>Прятки</b><p>В коробку Хома залезает целиком — его никто не видит. Ещё можно спрятаться за диваном, в шкафу, под кроватью или в корзине.</p></div></div>
         <div class="help-item"><span class="help-emoji">✦</span><div><b>Шалости</b><p>Врезайся в предметы с золотыми искорками. Разбросай всё, что можно!</p></div></div>
         <div class="help-item"><span class="help-emoji">🌻</span><div><b>Семечки</b><p>Собери 3 семечка на уровне — получишь дополнительную звезду.</p></div></div>
         <div class="help-item"><span class="help-emoji">📖</span><div><b>Английские слова</b><p>Ищи голубые карточки с буквой «A». Каждая карточка — новое слово: box, kitchen, bed... Их можно послушать и повторить!</p></div></div>

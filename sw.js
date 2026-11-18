@@ -1,5 +1,5 @@
 /* Хома-хулиган — офлайн-кэш для установленной игры */
-const CACHE = 'homa-huligan-v4';
+const CACHE = 'homa-huligan-v5';
 const ASSETS = [
   './',
   './index.html',

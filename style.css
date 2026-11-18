@@ -743,6 +743,19 @@ img { -webkit-user-drag: none; user-select: none; }
 .action-icon { font-size: 25px; line-height: 1; filter: drop-shadow(0 2px 0 rgba(255,255,255,.4)); }
 .action-text { font-size: 9px; font-weight: 900; letter-spacing: .08em; }
 .dash-btn { width: 88px; height: 88px; background: linear-gradient(180deg, #ffcf5c, #ff9f43); }
+.ball-btn {
+  position: absolute;
+  right: 3px;
+  bottom: 99px;
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(180deg, #e6f28a, #8ecb58);
+  box-shadow: 0 5px 0 var(--ink), 0 10px 16px rgba(63,43,54,.16);
+}
+.ball-btn .action-icon { font-size: 23px; }
+.ball-icon { width: 25px; height: 25px; display: block; filter: drop-shadow(0 2px 0 rgba(255,255,255,.4)); }
+.ball-btn.cooling .cooldown-ring { opacity: 1; }
+.ball-btn.cooling { filter: saturate(.55) brightness(.93); }
 .hide-btn {
   width: 72px;
   height: 72px;
@@ -1266,6 +1279,7 @@ img { -webkit-user-drag: none; user-select: none; }
   .toast { top: calc(var(--safe-top) + 63px); font-size: 12px; max-width: 76vw; }
   .action-btn { width: 74px; height: 74px; }
   .dash-btn { width: 80px; height: 80px; }
+  .ball-btn { width: 58px; height: 58px; right: 2px; bottom: 84px; }
   .hide-btn { width: 64px; height: 64px; }
   .joystick { width: 112px; height: 112px; left: calc(var(--safe-left) + 16px); bottom: calc(var(--safe-bottom) + 22px); }
   .joy-knob { width: 52px; height: 52px; margin: -26px 0 0 -26px; }
@@ -1392,6 +1406,7 @@ img { -webkit-user-drag: none; user-select: none; }
   .joy-knob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   .action-btn { width: 68px; height: 68px; }
   .dash-btn { width: 76px; height: 76px; }
+  .ball-btn { width: 56px; height: 56px; bottom: 80px; }
   .hide-btn { width: 60px; height: 60px; }
   .action-buttons { right: calc(var(--safe-right) + 14px); bottom: calc(var(--safe-bottom) + 16px); }
   .coach { bottom: calc(var(--safe-bottom) + 104px); }
