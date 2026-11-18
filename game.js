@@ -22,7 +22,7 @@
   const START_RADIUS = 20;
 
   function defaultSave() {
-    return { stars: {}, unlocked: 1, muted: false, lastLevel: 1, played: false };
+    return { stars: {}, unlocked: 1, muted: false, lastLevel: 1, played: false, words: {} };
   }
   function loadSave() {
     try {
@@ -35,6 +35,7 @@
       base.muted = !!data.muted;
       base.lastLevel = clamp(Number(data.lastLevel) || 1, 1, MAX_LEVELS);
       base.played = !!data.played;
+      base.words = data.words && typeof data.words === 'object' ? data.words : {};
       return base;
     } catch (e) {
       return defaultSave();
@@ -50,6 +51,14 @@
     return n;
   }
   function starsFor(id) { return Number(save.stars[id]) || 0; }
+  function wordsLearnedCount() { return Object.keys(save.words || {}).length; }
+  function plural(n, one, few, many) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+    return many;
+  }
   function firstUnfinished() {
     for (let i = 1; i <= MAX_LEVELS; i++) if (!starsFor(i)) return i;
     return 1;
@@ -266,9 +275,13 @@
     enemies: [],
     tasks: [],
     seeds: [],
+    words: [],
     hides: [],
     particles: [],
     floats: [],
+    currentWord: null,
+    wordReturnMode: 'play',
+    wordSpeakTimer: 0,
     camera: { x: 0, y: 0, zoom: 0.9 },
     view: { w: 390, h: 844, dpr: 1 },
     nav: null,
@@ -627,6 +640,7 @@
     G.staticCanvas = Art.buildStatic(G.level);
     G.tasks = G.level.tasks.map((t) => ({ ...t, done: false, pop: 0 }));
     G.seeds = G.level.seeds.map((s) => ({ ...s, collected: false }));
+    G.words = G.level.words.map((w) => ({ ...w, collected: false }));
     G.hides = G.level.hides.map((h) => ({ ...h }));
     G.enemies = G.level.enemies.map((cfg, i) => ({
       ...cfg,
@@ -656,6 +670,9 @@
     }));
     G.particles = [];
     G.floats = [];
+    G.currentWord = null;
+    G.wordReturnMode = 'play';
+    clearTimeout(G.wordSpeakTimer);
     G.doneCount = 0;
     G.caught = 0;
     G.exitActive = false;
@@ -683,6 +700,8 @@
     $('toast').classList.remove('show');
     $('eventBanner').classList.remove('show');
     $('coach').classList.remove('show');
+    $('wordCardModal').classList.remove('show');
+    $('wordBookModal').classList.remove('show');
     $('btnHide').classList.remove('show', 'hidden-mode');
     $('btnDash').classList.remove('cooling');
     G.joystick.active = false;
@@ -771,7 +790,8 @@
 
   function updateTitleUI() {
     const total = totalStars();
-    $('titleStars').textContent = total + ' из 12 звёзд';
+    const wordCount = wordsLearnedCount();
+    $('titleStars').textContent = total + ' из 12 звёзд · 📖 ' + wordCount + ' ' + plural(wordCount, 'слово', 'слова', 'слов');
     const next = firstUnfinished();
     const levelsDone = LEVELS.every((lvl) => starsFor(lvl.id) > 0);
     if (levelsDone) {
@@ -798,7 +818,7 @@
       '<div class="card-art" style="background:' + level.cardColor + '"><span class="card-num">' + level.id + '</span><span>' + level.art + '</span></div>' +
       '<div class="card-body"><div class="card-place">' + escapeHtml(level.place) + '</div>' +
       '<div class="card-name">' + escapeHtml(level.name) + '</div>' +
-      '<div class="card-desc">' + escapeHtml(level.short) + ' · ' + level.tasks.length + ' шалостей</div>' +
+      '<div class="card-desc">' + escapeHtml(level.short) + ' · ' + level.tasks.length + ' шалостей · ' + level.words.length + ' слова</div>' +
       '<div class="card-stars">' + starHtml + '</div></div>' + lock + '</button>';
   }
 
@@ -832,11 +852,17 @@
     G.enemies = [];
     G.tasks = [];
     G.seeds = [];
+    G.words = [];
     G.hides = [];
     G.solids = [];
     G.nav = null;
     G.particles = [];
     G.floats = [];
+    G.currentWord = null;
+    clearTimeout(G.wordSpeakTimer);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    $('wordCardModal').classList.remove('show');
+    $('wordBookModal').classList.remove('show');
     G.camera.x = 0;
     G.camera.y = 0;
   }
@@ -850,6 +876,7 @@
     resetStickVisual();
     hud.classList.add('hidden');
     hideCoach();
+    $('btnPauseWords').textContent = '📖 Слова (' + wordsLearnedCount() + ')';
     showScreen('screenPause');
   }
 
@@ -922,8 +949,9 @@
     const mm = Math.floor(seconds / 60);
     const ss = seconds % 60;
     const seedCount = G.seeds.filter((s) => s.collected).length;
+    const foundWords = G.words.filter((w) => w.collected);
     const caught = G.caught;
-    G.result = { stars, seconds, seeds: seedCount, caught };
+    G.result = { stars, seconds, seeds: seedCount, words: foundWords.length, caught };
 
     $('resultKicker').textContent = stars === 3 ? 'ИДЕАЛЬНЫЙ БАРДАК!' : 'УРОВЕНЬ ' + lvl.id + ' ПРОЙДЕН!';
     $('resultTitle').textContent = stars === 3 ? 'Вот это талант!' : (stars === 2 ? 'Отличный бардак!' : 'Бардак получился!');
@@ -937,8 +965,18 @@
     $('resultStats').innerHTML =
       '<span class="stat-chip">✦ Шалости ' + G.doneCount + '/' + G.tasks.length + '</span>' +
       '<span class="stat-chip">🌻 Семечки ' + seedCount + '/3</span>' +
+      '<span class="stat-chip">📖 Слова ' + foundWords.length + '/' + G.words.length + '</span>' +
       '<span class="stat-chip">🙈 Поймали ' + caught + '</span>' +
       '<span class="stat-chip">⏱ ' + mm + ':' + String(ss).padStart(2, '0') + '</span>';
+    $('resultWords').innerHTML = foundWords.length
+      ? '<div class="result-words-title">НОВЫЕ СЛОВА · нажми, чтобы услышать</div>' +
+        '<div class="result-words-list">' + foundWords.map((w) =>
+          '<button class="result-word" data-speak="' + escapeHtml(w.en) + '">' +
+          '<span class="result-word-emoji">' + escapeHtml(w.emoji) + '</span>' +
+          '<span class="result-word-text"><b>' + escapeHtml(w.en) + '</b><small>' + escapeHtml(w.ru) + '</small></span>' +
+          '<span class="result-word-sound">🔊</span></button>'
+        ).join('') + '</div>'
+      : '<div class="result-words-empty">📖 Карточки слов ещё не собраны — поищи голубые карточки с «A»!</div>';
     $('resultArt').textContent = stars === 3 ? '🏆' : (lvl.id === 4 ? '🏡' : '🐹');
     $('btnResultNextLabel').textContent = lvl.id === 4 ? 'СМОТРЕТЬ ФИНАЛ' : 'ДАЛЬШЕ';
     const card = document.querySelector('#screenResult .result-card');
@@ -1123,6 +1161,89 @@
       showToast('Все три семечка! Это ещё одна звезда!', 2600);
       Sound.play('win');
     }
+  }
+
+  function speakEnglish(text) {
+    if (!text || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.78;
+      utterance.pitch = 1.08;
+      const voices = window.speechSynthesis.getVoices();
+      const english = voices.find((v) => /^en([-_]|$)/i.test(v.lang));
+      if (english) utterance.voice = english;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) { /* speech is a nice bonus, never block the game */ }
+  }
+
+  function collectWord(w) {
+    if (!w || w.collected) return;
+    w.collected = true;
+    save.words[w.en] = { ru: w.ru, emoji: w.emoji };
+    persist();
+    Sound.play('seed');
+    spawnBurst(w.x, w.y - 8, ['#7cc7e8', '#b9e7f7', '#fff4d9', '#ffd15c'], 18, 180);
+    G.floats.push({ text: 'ABC!', x: w.x, y: w.y - 42, life: 1.1, max: 1.1, color: '#3d8fbf', size: 17 });
+    showWordCard(w);
+  }
+
+  function showWordCard(w) {
+    G.currentWord = w;
+    G.wordReturnMode = 'play';
+    G.mode = 'word';
+    Sound.setActive(false);
+    hideCoach();
+    hideToast();
+    $('wordEmoji').textContent = w.emoji;
+    $('wordEn').textContent = w.en;
+    $('wordRu').textContent = w.ru;
+    $('wordSentence').textContent = w.sentence || '';
+    $('wordSentenceRu').textContent = w.sentenceRu || '';
+    $('wordCardModal').classList.add('show');
+    clearTimeout(G.wordSpeakTimer);
+    if (!save.muted) {
+      G.wordSpeakTimer = setTimeout(() => speakEnglish(w.en), 350);
+    }
+  }
+
+  function closeWordCard() {
+    if (G.mode !== 'word') return;
+    clearTimeout(G.wordSpeakTimer);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    $('wordCardModal').classList.remove('show');
+    G.currentWord = null;
+    G.mode = 'play';
+    G.last = performance.now();
+    if (G.player) G.player.invuln = Math.max(G.player.invuln, 1.2);
+    Sound.setActive(true);
+    Sound.setMood('calm');
+  }
+
+  function renderWordBook() {
+    const entries = Object.entries(save.words || {});
+    const list = $('wordBookList');
+    if (!entries.length) {
+      list.innerHTML = '<p class="wordbook-empty">Пока пусто. Ищи голубые карточки со словом «A» на уровнях!</p>';
+      return;
+    }
+    list.innerHTML = entries.map(([en, data]) =>
+      '<button class="wordbook-item" data-speak="' + escapeHtml(en) + '">' +
+      '<span class="wordbook-emoji">' + escapeHtml(data.emoji || '📖') + '</span>' +
+      '<span class="wordbook-text"><b>' + escapeHtml(en) + '</b><small>' + escapeHtml(data.ru || '') + '</small></span>' +
+      '<span class="wordbook-sound">🔊</span></button>'
+    ).join('');
+  }
+
+  function openWordBook() {
+    renderWordBook();
+    $('wordBookModal').classList.add('show');
+    Sound.play('click');
+  }
+
+  function closeWordBook() {
+    $('wordBookModal').classList.remove('show');
   }
 
   function nearestHide() {
@@ -1596,6 +1717,13 @@
     G.seeds.forEach((s) => {
       if (!s.collected && dist(p.x, p.y, s.x, s.y) < 34) collectSeed(s);
     });
+    for (let i = 0; i < G.words.length; i++) {
+      const w = G.words[i];
+      if (!w.collected && dist(p.x, p.y, w.x, w.y) < 38) {
+        collectWord(w);
+        return;
+      }
+    }
     // coach near hide
     if (G.nearHide && !G.tutorial.hide && !p.hidden && G.mode === 'play') {
       showCoach('Рядом укрытие! Жми «ПРЯТКИ» и пережди', 3600);
@@ -1805,6 +1933,14 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') e.preventDefault();
+      if ((e.code === 'Enter' || e.code === 'Escape') && G.mode === 'word') {
+        closeWordCard();
+        return;
+      }
+      if (e.code === 'Escape' && $('wordBookModal').classList.contains('show')) {
+        closeWordBook();
+        return;
+      }
       G.keys.add(e.code);
       if (e.code === 'Space') startDash();
       if (e.code === 'KeyE') toggleHide();
@@ -1854,6 +1990,7 @@
     G.tasks.forEach((t) => Art.drawTask(ctx, t, G.time));
     // seeds
     G.seeds.forEach((s) => Art.drawSeed(ctx, s, G.time));
+    G.words.forEach((w) => Art.drawWord(ctx, w, G.time));
     // hide hints
     G.hides.forEach((h) => Art.drawHide(ctx, h, G.nearHide === h, G.time, G.player && G.player.hideSpot === h));
     // exit
@@ -2004,6 +2141,21 @@
     $('btnHelp').addEventListener('click', () => { Sound.unlock(); openHelp(); });
     $('btnPauseLevels').addEventListener('click', () => { Sound.play('click'); showLevels(); });
     $('btnPauseHome').addEventListener('click', () => { Sound.play('click'); goHome(); });
+    $('btnPauseWords').addEventListener('click', openWordBook);
+    $('btnWordNext').addEventListener('click', () => { Sound.play('click'); closeWordCard(); });
+    $('btnWordSpeak').addEventListener('click', () => {
+      if (G.currentWord) speakEnglish(G.currentWord.en);
+    });
+    $('btnWordBookClose').addEventListener('click', closeWordBook);
+    document.querySelectorAll('[data-close-wordbook]').forEach((el) => el.addEventListener('click', closeWordBook));
+    $('wordBookList').addEventListener('click', (e) => {
+      const item = e.target.closest('[data-speak]');
+      if (item) speakEnglish(item.dataset.speak);
+    });
+    $('resultWords').addEventListener('click', (e) => {
+      const item = e.target.closest('[data-speak]');
+      if (item) speakEnglish(item.dataset.speak);
+    });
     $('btnStartLevel').addEventListener('click', () => { Sound.unlock(); Sound.play('click'); beginPlay(); });
     $('btnIntroBack').addEventListener('click', () => { Sound.play('click'); goHome(); });
     $('btnResultNext').addEventListener('click', () => {
@@ -2016,6 +2168,7 @@
       Sound.play('click');
       startLevelByIndex(G.level.id - 1, { skipIntro: true });
     });
+    $('btnResultWords').addEventListener('click', openWordBook);
     $('btnResultLevels').addEventListener('click', () => { Sound.play('click'); showLevels(); });
     $('btnFinaleAgain').addEventListener('click', () => { Sound.play('click'); showLevels(); });
     $('btnFinaleHome').addEventListener('click', () => { Sound.play('click'); goHome(); });
@@ -2063,6 +2216,11 @@
     resize();
     wireUI();
     setupInput();
+    if (!('speechSynthesis' in window)) {
+      $('btnWordSpeak').style.display = 'none';
+    } else {
+      window.speechSynthesis.getVoices();
+    }
     updateTitleUI();
     renderLevels();
     showScreen('screenTitle');

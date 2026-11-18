@@ -1,5 +1,5 @@
 /* Хома-хулиган — офлайн-кэш для установленной игры */
-const CACHE = 'homa-huligan-v2';
+const CACHE = 'homa-huligan-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -46,14 +46,28 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type === 'opaque') return response;
-        const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
-        return response;
+    (function () {
+      const code = /\.(?:js|css)$/i.test(url.pathname);
+      if (code) {
+        return fetch(request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              const copy = response.clone();
+              caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+            }
+            return response;
+          })
+          .catch(() => caches.match(request));
+      }
+      return caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (!response || response.status !== 200 || response.type === 'opaque') return response;
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+          return response;
+        });
       });
-    })
+    })()
   );
 });

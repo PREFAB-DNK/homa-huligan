@@ -940,6 +940,14 @@
     g.fillStyle = 'rgba(70,50,64,.2)';
     g.font = '900 11px ' + FONT;
     g.fillText('ХОМА', x + 17, y + h * 0.55);
+    // paw print: a friendly hint that this box is a hiding spot
+    const px = x + w - 27;
+    const py = y + h - 22;
+    g.fillStyle = 'rgba(70,50,64,.24)';
+    ell(g, px, py, 6, 5, 'rgba(70,50,64,.24)', null);
+    [[-7, -7], [-2.5, -10], [2.5, -10], [7, -7]].forEach((p) => {
+      ell(g, px + p[0], py + p[1], 2.6, 3.1, 'rgba(70,50,64,.24)', null);
+    });
   }
 
   function drawChest(g, f) {
@@ -1355,6 +1363,33 @@
     g.beginPath(); g.arc(-2, -3, 5, 0.2, 1.3); g.stroke();
     star(g, -17, -20, 3.5, '#fff4d9', 'rgba(70,50,64,.25)');
     star(g, 16, -14, 2.8, '#ffd15c', 'rgba(70,50,64,.2)');
+    g.restore();
+  }
+
+  function drawWord(g, w, time) {
+    if (!w || w.collected) return;
+    const bob = Math.sin(time * 2.8 + w.x * 0.04) * 4;
+    g.save();
+    g.translate(w.x, w.y + bob);
+    const halo = g.createRadialGradient(0, -8, 3, 0, -8, 46);
+    halo.addColorStop(0, 'rgba(124,199,232,.42)');
+    halo.addColorStop(1, 'rgba(124,199,232,0)');
+    g.fillStyle = halo;
+    g.fillRect(-48, -58, 96, 96);
+    shadow(g, 0, 24, 20, 6, 0.18);
+    g.rotate(-0.08);
+    rr(g, -21, -29, 42, 52, 7, '#fffaf0', INK, 2.6);
+    rr(g, -21, -29, 42, 15, 6, '#7cc7e8', INK, 2.2);
+    g.fillStyle = '#2f7ea5';
+    g.font = '900 20px ' + FONT;
+    g.textAlign = 'center';
+    g.fillText('A', 0, 8);
+    g.fillStyle = '#6b4d57';
+    g.font = '900 8px ' + FONT;
+    g.fillText('abc', 0, 19);
+    g.textAlign = 'left';
+    star(g, -29, -19, 4.5, '#b9e7f7', 'rgba(70,50,64,.25)');
+    star(g, 28, 3, 3.2, '#fff4d9', 'rgba(70,50,64,.2)');
     g.restore();
   }
 
@@ -1779,7 +1814,7 @@
   }
 
   window.Art = {
-    buildStatic, drawTask, drawSeed, drawHide, drawExit, drawFurniture,
+    buildStatic, drawTask, drawSeed, drawWord, drawHide, drawExit, drawFurniture,
     drawHoma, drawMom, drawCat, drawRobot, drawSpeech, drawHidingEyes, drawParticles,
     star, rr, ell, line, shadow, mix, lighten, darken, INK, FONT
   };

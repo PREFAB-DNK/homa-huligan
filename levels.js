@@ -7,6 +7,9 @@
   const L1_HIDES = [
     { x: 100, y: 720, w: 180, h: 105, ax: 315, ay: 790, px: 154, py: 756, label: 'в сундуке' },
     { x: 1030, y: 720, w: 150, h: 120, ax: 1005, ay: 810, px: 1095, py: 772, label: 'в коробке' },
+    { x: 350, y: 270, w: 120, h: 100, ax: 320, ay: 320, px: 410, py: 320, label: 'в коробке' },
+    { x: 360, y: 760, w: 130, h: 105, ax: 330, ay: 812, px: 425, py: 812, label: 'в коробке' },
+    { x: 1010, y: 180, w: 120, h: 100, ax: 980, ay: 230, px: 1070, py: 230, label: 'в коробке' },
     { x: 530, y: 400, w: 230, h: 120, ax: 645, ay: 552, px: 645, py: 462, label: 'под столом' }
   ];
 
@@ -53,6 +56,9 @@
         { kind: 'castle', x: 630, y: 800, w: 280, h: 150, color: '#d8a670' },
         { kind: 'toyChest', x: 100, y: 720, w: 180, h: 105, color: '#df8d55' },
         { kind: 'box', x: 1030, y: 720, w: 150, h: 120, color: '#b8926c' },
+        { kind: 'box', x: 350, y: 270, w: 120, h: 100, color: '#c8a078' },
+        { kind: 'box', x: 360, y: 760, w: 130, h: 105, color: '#d1a474' },
+        { kind: 'box', x: 1010, y: 180, w: 120, h: 100, color: '#b8926c' },
         { kind: 'plant', x: 1460, y: 560, w: 78, h: 90, color: '#75b985' }
       ],
       tasks: [
@@ -68,12 +74,16 @@
         { x: 600, y: 750 },
         { x: 1405, y: 600 }
       ],
+      words: [
+        { en: 'toy', ru: 'игрушка', emoji: '🧸', x: 160, y: 640, sentence: 'This is a toy.', sentenceRu: 'Это игрушка.' },
+        { en: 'box', ru: 'коробка', emoji: '📦', x: 520, y: 340, sentence: 'This is a box.', sentenceRu: 'Это коробка.' }
+      ],
       hides: L1_HIDES,
       spawn: { x: 330, y: 880 },
       exit: { x: 1448, y: 60, w: 100, h: 72, label: 'норка' },
       enemies: [
         {
-          type: 'cat', name: 'Мурка', x: 1360, y: 500, speed: 172, sight: 235,
+          type: 'cat', name: 'Мурка', x: 1360, y: 500, speed: 150, sight: 235,
           wakeAfter: 2, sleep: true,
           patrol: [[1240, 520], [980, 610], [930, 400], [1160, 290], [1370, 470]],
           phrases: { alert: 'Мяу!', lost: 'Мрр?', catch: 'Мурка догнала!' }
@@ -135,6 +145,7 @@
         { kind: 'coffeeTable', x: 340, y: 395, w: 260, h: 130, color: '#b67e51' },
         { kind: 'bookshelf', x: 58, y: 560, w: 84, h: 280, color: '#a97750' },
         { kind: 'pouf', x: 690, y: 610, w: 78, h: 72, color: '#7cc7e8' },
+        { kind: 'box', x: 480, y: 620, w: 120, h: 100, color: '#c8a078' },
         { kind: 'counter', x: 1120, y: 58, w: 440, h: 108, variant: 'sink', color: '#f5e6cf' },
         { kind: 'counter', x: 1560, y: 58, w: 310, h: 108, variant: 'stove', color: '#f5e6cf' },
         { kind: 'counter', x: 1870, y: 58, w: 270, h: 108, variant: 'plain', color: '#f5e6cf' },
@@ -146,6 +157,8 @@
         { kind: 'coatRack', x: 1850, y: 1020, w: 86, h: 86, color: '#5a4750' },
         { kind: 'plant', x: 300, y: 1330, w: 88, h: 96, color: '#75b985' },
         { kind: 'laundryBasket', x: 380, y: 1230, w: 92, h: 92, color: '#d9b07c' },
+        { kind: 'box', x: 980, y: 1280, w: 120, h: 100, color: '#d1a474' },
+        { kind: 'box', x: 1150, y: 800, w: 120, h: 100, color: '#b8926c' },
         { kind: 'wardrobe', x: 1730, y: 1120, w: 130, h: 280, color: '#a97750' }
       ],
       tasks: [
@@ -161,10 +174,17 @@
         { x: 1210, y: 690 },
         { x: 560, y: 1090 }
       ],
+      words: [
+        { en: 'kitchen', ru: 'кухня', emoji: '🍳', x: 1170, y: 300, sentence: 'This is a kitchen.', sentenceRu: 'Это кухня.' },
+        { en: 'sofa', ru: 'диван', emoji: '🛋️', x: 260, y: 270, sentence: 'This is a sofa.', sentenceRu: 'Это диван.' }
+      ],
       hides: [
         { x: 180, y: 80, w: 370, h: 135, ax: 560, ay: 245, px: 545, py: 155, label: 'за диваном' },
         { x: 1300, y: 700, w: 430, h: 160, ax: 1510, ay: 890, px: 1510, py: 760, label: 'под столом' },
         { x: 380, y: 1230, w: 92, h: 92, ax: 300, ay: 1280, px: 426, py: 1250, label: 'в корзине' },
+        { x: 480, y: 620, w: 120, h: 100, ax: 450, ay: 670, px: 540, py: 670, label: 'в коробке' },
+        { x: 980, y: 1280, w: 120, h: 100, ax: 950, ay: 1330, px: 1040, py: 1330, label: 'в коробке' },
+        { x: 1150, y: 800, w: 120, h: 100, ax: 1210, ay: 770, px: 1210, py: 850, label: 'в коробке' },
         { x: 1730, y: 1120, w: 130, h: 280, ax: 1890, ay: 1240, px: 1795, py: 1200, label: 'в шкафу' }
       ],
       spawn: { x: 170, y: 830 },
@@ -176,7 +196,7 @@
           phrases: { alert: 'Хома! Стой!', lost: 'Куда же он...', catch: 'Мама догнала!' }
         },
         {
-          type: 'cat', name: 'Мурка', x: 600, y: 165, speed: 176, sight: 240,
+          type: 'cat', name: 'Мурка', x: 600, y: 165, speed: 150, sight: 240,
           wakeAfter: 2, sleep: true,
           patrol: [[600, 230], [850, 300], [920, 620], [600, 820], [400, 1150], [900, 1230], [1350, 895]],
           phrases: { alert: 'Мяу!', lost: 'Мрр?', catch: 'Мурка догнала!' }
@@ -240,9 +260,11 @@
         { kind: 'coatRack', x: 1110, y: 450, w: 94, h: 94, color: '#5a4750' },
         { kind: 'bench', x: 650, y: 1110, w: 260, h: 92, color: '#b9855a' },
         { kind: 'box', x: 250, y: 920, w: 140, h: 120, color: '#c9a276' },
+        { kind: 'box', x: 480, y: 400, w: 120, h: 100, color: '#d1a474' },
         { kind: 'laundryBasket', x: 1030, y: 1180, w: 94, h: 94, color: '#d9b07c' },
         { kind: 'plant', x: 160, y: 1180, w: 88, h: 96, color: '#75b985' },
         { kind: 'rail', x: 1320, y: 230, w: 500, h: 78, color: '#d1a06f', clothes: ['#e47d6d', '#7cc7e8', '#f4bd55', '#9bce9c', '#b7a1e8'] },
+        { kind: 'box', x: 1720, y: 400, w: 120, h: 100, color: '#c8a078' },
         { kind: 'shelf', x: 1840, y: 300, w: 90, h: 280, color: '#b98456', scarves: true },
         { kind: 'dresser', x: 1450, y: 600, w: 200, h: 120, color: '#b98456' },
         { kind: 'wardrobe', x: 1680, y: 650, w: 200, h: 260, color: '#9d6e4b' },
@@ -263,9 +285,15 @@
         { x: 1700, y: 470 },
         { x: 360, y: 1200 }
       ],
+      words: [
+        { en: 'door', ru: 'дверь', emoji: '🚪', x: 620, y: 1300, sentence: 'This is a door.', sentenceRu: 'Это дверь.' },
+        { en: 'shoe', ru: 'ботинок', emoji: '👟', x: 470, y: 600, sentence: 'This is a shoe.', sentenceRu: 'Это ботинок.' }
+      ],
       hides: [
         { x: 100, y: 640, w: 280, h: 95, ax: 250, ay: 770, px: 240, py: 690, label: 'под скамейкой' },
         { x: 250, y: 920, w: 140, h: 120, ax: 410, ay: 980, px: 320, py: 962, label: 'в коробке' },
+        { x: 480, y: 400, w: 120, h: 100, ax: 450, ay: 450, px: 540, py: 450, label: 'в коробке' },
+        { x: 1720, y: 400, w: 120, h: 100, ax: 1690, ay: 450, px: 1780, py: 450, label: 'в коробке' },
         { x: 1030, y: 1180, w: 94, h: 94, ax: 970, ay: 1230, px: 1076, py: 1204, label: 'в корзине' },
         { x: 1680, y: 650, w: 200, h: 260, ax: 1780, ay: 930, px: 1780, py: 780, label: 'в шкафу' }
       ],
@@ -284,7 +312,7 @@
           phrases: { alert: 'Хома, что тут происходит?!', lost: 'Ну и где он?', catch: 'Мама догнала!' }
         },
         {
-          type: 'cat', name: 'Мурка', x: 1500, y: 900, speed: 178, sight: 230,
+          type: 'cat', name: 'Мурка', x: 1500, y: 900, speed: 150, sight: 230,
           wakeAfter: 3, sleep: true,
           patrol: [[1540, 360], [1350, 700], [1600, 900], [1000, 900], [600, 1220], [1300, 1200]],
           phrases: { alert: 'Мяу!', lost: 'Мрр?', catch: 'Мурка догнала!' }
@@ -346,18 +374,22 @@
         { kind: 'rug', x: 1640, y: 260, w: 340, h: 300, color: '#8fcaae', accent: '#d9f1e3', pattern: 'dots', flat: true },
         { kind: 'rug', x: 220, y: 880, w: 1860, h: 280, color: '#5d7590', accent: '#8ba2bb', pattern: 'stripes', flat: true },
         { kind: 'bed', x: 90, y: 70, w: 240, h: 330, color: '#b7a1e8', pillow: '#fff3d0' },
+        { kind: 'box', x: 380, y: 80, w: 110, h: 90, color: '#c8a078' },
         { kind: 'desk', x: 560, y: 70, w: 150, h: 95, color: '#bf8c61' },
         { kind: 'chair', x: 600, y: 190, w: 64, h: 64, color: '#e8a37d' },
         { kind: 'toyShelf', x: 510, y: 500, w: 190, h: 95, color: '#b98456' },
         { kind: 'bed', x: 900, y: 70, w: 300, h: 360, color: '#e8a37d', pillow: '#fff3d0' },
         { kind: 'wardrobe', x: 1370, y: 80, w: 160, h: 260, color: '#9d6e4b' },
         { kind: 'dresser', x: 800, y: 500, w: 200, h: 90, color: '#b98456' },
+        { kind: 'box', x: 1260, y: 380, w: 120, h: 90, color: '#d1a474' },
         { kind: 'armchair', x: 1240, y: 480, w: 110, h: 110, color: '#7e9f8d' },
         { kind: 'sofa', x: 1650, y: 80, w: 310, h: 135, color: '#6f9f8b', pillow: '#ffd15c' },
+        { kind: 'box', x: 1720, y: 600, w: 120, h: 90, color: '#b8926c' },
         { kind: 'chest', x: 1850, y: 480, w: 130, h: 110, color: '#a97750' },
         { kind: 'plant', x: 1590, y: 520, w: 84, h: 94, color: '#75b985' },
         { kind: 'nest', x: 2070, y: 560, w: 140, h: 100, color: '#d9a45f' },
         { kind: 'console', x: 980, y: 1370, w: 300, h: 78, color: '#a9724b' },
+        { kind: 'box', x: 1600, y: 1150, w: 120, h: 100, color: '#c8a078' },
         { kind: 'laundryBasket', x: 1100, y: 1240, w: 94, h: 94, color: '#d9b07c' },
         { kind: 'plant', x: 80, y: 1180, w: 88, h: 96, color: '#75b985' },
         { kind: 'plant', x: 2160, y: 1130, w: 88, h: 96, color: '#75b985' },
@@ -378,10 +410,18 @@
         { x: 1420, y: 520 },
         { x: 1700, y: 620 }
       ],
+      words: [
+        { en: 'bed', ru: 'кровать', emoji: '🛏️', x: 430, y: 430, sentence: 'This is a bed.', sentenceRu: 'Это кровать.' },
+        { en: 'pillow', ru: 'подушка', emoji: '🛌', x: 1900, y: 300, sentence: 'This is a pillow.', sentenceRu: 'Это подушка.' }
+      ],
       hides: [
         { x: 90, y: 70, w: 240, h: 330, ax: 210, ay: 470, px: 210, py: 370, label: 'под кроватью' },
         { x: 900, y: 70, w: 300, h: 360, ax: 1060, ay: 500, px: 1060, py: 400, label: 'под кроватью' },
         { x: 1370, y: 80, w: 160, h: 260, ax: 1440, ay: 400, px: 1450, py: 320, label: 'в шкафу' },
+        { x: 380, y: 80, w: 110, h: 90, ax: 350, ay: 125, px: 435, py: 125, label: 'в коробке' },
+        { x: 1260, y: 380, w: 120, h: 90, ax: 1230, ay: 425, px: 1320, py: 425, label: 'в коробке' },
+        { x: 1720, y: 600, w: 120, h: 90, ax: 1690, ay: 645, px: 1780, py: 645, label: 'в коробке' },
+        { x: 1600, y: 1150, w: 120, h: 100, ax: 1570, ay: 1200, px: 1660, py: 1200, label: 'в коробке' },
         { x: 1850, y: 480, w: 130, h: 110, ax: 1815, ay: 560, px: 1915, py: 530, label: 'в сундуке' },
         { x: 1100, y: 1240, w: 94, h: 94, ax: 1040, ay: 1290, px: 1146, py: 1264, label: 'в корзине' }
       ],
@@ -394,7 +434,7 @@
           phrases: { alert: 'Хома! Ты почему не спишь?', lost: 'Хома, ты где?', catch: 'Мама догнала!' }
         },
         {
-          type: 'cat', name: 'Мурка', x: 620, y: 980, speed: 178, sight: 235,
+          type: 'cat', name: 'Мурка', x: 620, y: 980, speed: 150, sight: 235,
           wakeAfter: 2, sleep: true,
           patrol: [[430, 980], [600, 1220], [1300, 1250], [1900, 1200], [1600, 900], [800, 900]],
           phrases: { alert: 'Мяу!', lost: 'Мрр?', catch: 'Мурка догнала!' }

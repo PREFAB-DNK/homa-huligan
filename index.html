@@ -174,7 +174,7 @@
       </div>
 
       <footer class="title-footer">
-        <span>4 уровня</span><i>•</i><span>для пальчиков и планшетов</span><i>•</i><span>без рекламы</span>
+        <span>4 уровня</span><i>•</i><span>английские слова</span><i>•</i><span>без рекламы</span>
       </footer>
       <div class="ios-tip" id="iosTip">📲 На iPhone/iPad: «Поделиться» → «На экран Домой»</div>
     </section>
@@ -202,6 +202,7 @@
         <p class="intro-place" id="introPlace">ПОДВАЛ · игровая комната</p>
         <p class="intro-desc" id="introDesc"></p>
         <div class="intro-goals" id="introGoals"></div>
+        <p class="intro-learn">📖 Ищи голубые карточки — учи английские слова!</p>
         <div class="intro-enemies" id="introEnemies"></div>
         <div class="intro-controls">
           <div><span class="ctrl-icon">🕹️</span><b>Веди пальцем</b><small>чтобы бежать</small></div>
@@ -229,6 +230,7 @@
           <button class="btn btn-secondary" id="btnPauseLevels"><span class="btn-main">К УРОВНЯМ</span></button>
         </div>
         <div class="pause-bottom">
+          <button class="mini-btn" id="btnPauseWords">📖 Слова</button>
           <button class="mini-btn" id="btnPauseMute"><span id="pauseSoundGlyph">♪</span> Звук</button>
           <button class="mini-btn" id="btnPauseHome">На главную</button>
         </div>
@@ -245,10 +247,12 @@
         </div>
         <p class="result-note" id="resultNote">Мама только вздохнула...</p>
         <div class="result-stats" id="resultStats"></div>
+        <div class="result-words" id="resultWords"></div>
         <div class="result-art" id="resultArt">🐹</div>
         <button class="btn btn-play" id="btnResultNext"><span class="btn-main" id="btnResultNextLabel">ДАЛЬШЕ</span></button>
         <div class="result-row">
           <button class="mini-btn" id="btnResultReplay">↻ Ещё раз</button>
+          <button class="mini-btn" id="btnResultWords">📖 Слова</button>
           <button class="mini-btn" id="btnResultLevels">К уровням</button>
         </div>
       </div>
@@ -288,6 +292,7 @@
         <div class="help-item"><span class="help-emoji">👀</span><div><b>Прятки</b><p>Подойди к коробке, шкафу, кровати или корзине. Появится кнопка «ПРЯТКИ» — жми!</p></div></div>
         <div class="help-item"><span class="help-emoji">✦</span><div><b>Шалости</b><p>Врезайся в предметы с золотыми искорками. Разбросай всё, что можно!</p></div></div>
         <div class="help-item"><span class="help-emoji">🌻</span><div><b>Семечки</b><p>Собери 3 семечка на уровне — получишь дополнительную звезду.</p></div></div>
+        <div class="help-item"><span class="help-emoji">📖</span><div><b>Английские слова</b><p>Ищи голубые карточки с буквой «A». Каждая карточка — новое слово: box, kitchen, bed... Их можно послушать и повторить!</p></div></div>
         <div class="help-item"><span class="help-emoji">🏃</span><div><b>Убегай!</b><p>Мама, кошка Мурка и робот-пылесос не любят бардак. Прячься или делай рывок!</p></div></div>
       </div>
       <div class="help-ios">
@@ -298,6 +303,33 @@
         <button class="btn btn-play" data-close-help><span class="btn-main">ВСЁ ПОНЯТНО</span></button>
         <button class="text-btn danger" id="btnResetProgress">Сбросить прогресс</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Learning card -->
+  <div class="modal word-card-modal" id="wordCardModal">
+    <div class="modal-backdrop"></div>
+    <div class="word-learn-card">
+      <p class="kicker">Английское слово</p>
+      <div class="word-learn-emoji" id="wordEmoji">📦</div>
+      <div class="word-learn-en" id="wordEn">box</div>
+      <div class="word-learn-ru" id="wordRu">коробка</div>
+      <p class="word-learn-sentence" id="wordSentence">This is a box.</p>
+      <p class="word-learn-sentence-ru" id="wordSentenceRu">Это коробка.</p>
+      <button class="word-speak-btn" id="btnWordSpeak">🔊 ПОСЛУШАТЬ</button>
+      <button class="btn btn-play word-learn-next" id="btnWordNext"><span class="btn-main">ДАЛЬШЕ</span></button>
+    </div>
+  </div>
+
+  <!-- Collected words -->
+  <div class="modal" id="wordBookModal">
+    <div class="modal-backdrop" data-close-wordbook></div>
+    <div class="modal-card wordbook-card">
+      <button class="modal-close" id="btnWordBookClose" aria-label="Закрыть">×</button>
+      <p class="kicker">Твой словарик</p>
+      <h2>МОИ СЛОВА</h2>
+      <div class="wordbook-list" id="wordBookList"></div>
+      <button class="btn btn-play" data-close-wordbook><span class="btn-main">ЗАКРЫТЬ</span></button>
     </div>
   </div>
 </div>
